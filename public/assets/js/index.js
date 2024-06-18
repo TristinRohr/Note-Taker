@@ -3,6 +3,7 @@ let noteTitle;
 let noteText;
 let saveNoteBtn;
 let newNoteBtn;
+let clearBtn;
 let noteList;
 
 if (window.location.pathname === '/notes') {
@@ -15,18 +16,60 @@ if (window.location.pathname === '/notes') {
   noteList = document.querySelectorAll('.list-container .list-group');
 }
 
-// Show an element
-const show = (elem) => {
-  elem.style.display = 'inline';
+// Function to handle input events and show/hide buttons
+const handleInput = () => {
+  const titleValue = noteTitle.value.trim();
+  const textValue = noteText.value.trim();
+
+  if (titleValue && textValue) {
+    saveNoteBtn.style.display = 'inline';
+    newNoteBtn.style.display = 'inline';
+    clearBtn.style.display = 'inline';
+  } else {
+    saveNoteBtn.style.display = 'none';
+    newNoteBtn.style.display = 'none';
+    clearBtn.style.display = 'none';
+  }
 };
 
-// Hide an element
-const hide = (elem) => {
-  elem.style.display = 'none';
+// Function to clear form inputs
+const clearForm = () => {
+  noteTitle.value = '';
+  noteText.value = '';
+  handleInput(); // Ensure buttons are hidden after clearing inputs
 };
 
-// activeNote is used to keep track of the note in the textarea
-let activeNote = {};
+if (window.location.pathname === '/notes') {
+  document.querySelector('.save-note').addEventListener('click', async () => {
+    const noteTitle = document.querySelector('.note-title').value;
+    const noteText = document.querySelector('.note-textarea').value;
+
+    if (noteTitle && noteText) {
+      const newNote = { title: noteTitle, text: noteText };
+      await saveNote(newNote);
+      await getAndRenderNotes();
+    }
+  });
+
+  document.querySelector('.new-note').addEventListener('click', () => {
+    clearForm();
+  });
+
+  document.querySelector('.clear-btn').addEventListener('click', () => {
+    clearForm();
+  });
+
+  document.querySelector('.list-group').addEventListener('click', async (event) => {
+    if (event.target.matches('.delete-note')) {
+      const id = event.target.getAttribute('data-id');
+      await deleteNote(id);
+      await getAndRenderNotes();
+    }
+  });
+
+  noteTitle.addEventListener('input', handleInput);
+  noteText.addEventListener('input', handleInput);
+}
 
 // Fetches notes from the server
 const getNotes = async () => {
@@ -104,29 +147,5 @@ const getAndRenderNotes = async () => {
 };
 
 if (window.location.pathname === '/notes') {
-  document.querySelector('.save-note').addEventListener('click', async () => {
-    const noteTitle = document.querySelector('.note-title').value;
-    const noteText = document.querySelector('.note-textarea').value;
-
-    if (noteTitle && noteText) {
-      const newNote = { title: noteTitle, text: noteText };
-      await saveNote(newNote);
-      await getAndRenderNotes();
-    }
-  });
-
-  document.querySelector('.new-note').addEventListener('click', () => {
-    document.querySelector('.note-title').value = '';
-    document.querySelector('.note-textarea').value = '';
-  });
-
-  document.querySelector('.list-group').addEventListener('click', async (event) => {
-    if (event.target.matches('.delete-note')) {
-      const id = event.target.getAttribute('data-id');
-      await deleteNote(id);
-      await getAndRenderNotes();
-    }
-  });
+  getAndRenderNotes();
 }
-
-getAndRenderNotes();
